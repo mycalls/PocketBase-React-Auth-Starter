@@ -19,12 +19,21 @@ import { PrimaryActionButton } from '../components/ui/PrimaryActionButton';
 import { OAuthButtons } from '../components/ui/OAuthButtons';
 import { TimeBadge } from '../components/ui/TimeBadge';
 
+// Auth screen with password, OTP, and MFA flows.
+// 비밀번호, OTP, MFA 흐름을 포함한 인증 화면.
+
 export const Route = createLazyFileRoute('/signin')({
   component: UserAuthForm,
 });
 
+// OTP input validity window (seconds).
+// OTP 입력 유효 시간(초)
+// it must be same with the setting value of pocketbase
+// pocketbase 설정과 똑같이 설정할 것.
 const otpDurationInSeconds: number = 180;
 
+// Narrow any to MFA-challenge result.
+// any 응답이 MFA 챌린지인지 판별하는 타입 가드.
 function isMfaChallenge(response: any): response is MfaChallengeResponse {
   return response && response.mfa === true && typeof response.mfaId === 'string';
 }
@@ -42,6 +51,8 @@ function UserSignInForm({ onMfaRequired, onSignInSuccess }: UserSignInFormProps)
   const [isLoading, setIsLoading] = useState(false);
   const { signIn } = useAuth();
 
+  // Handle password sign-in and branch to MFA if needed.
+  // 비밀번호 로그인 처리 및 필요 시 MFA 단계로 분기
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -50,11 +61,13 @@ function UserSignInForm({ onMfaRequired, onSignInSuccess }: UserSignInFormProps)
     try {
       const result = await signIn(email, password, isAdmin);
       if (isMfaChallenge(result)) {
-        // 부모에게 MFA가 필요하다고 알림
+        // Notify parent to start MFA flow.
+        // 상위 컴포넌트에 MFA 진행 필요 알림
         onMfaRequired(result.mfaId, email);
         setError('MFA required. An OTP has been sent to your email.');
       } else {
-        // 부모에게 성공했다고 알림
+        // On success, let parent navigate.
+        // 성공 시 상위 컴포넌트에 알림(네비게이션)
         onSignInSuccess();
       }
     } catch (error) {
@@ -121,6 +134,8 @@ function UserSignUpForm({ onMfaRequired, onSignUpSuccess }: UserSignUpFormProps)
   const [isLoading, setIsLoading] = useState(false);
   const { signUp } = useAuth();
 
+  // Create account, then branch to MFA if required.
+  // 계정 생성 후 필요 시 MFA 단계로 분기
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -135,10 +150,12 @@ function UserSignUpForm({ onMfaRequired, onSignUpSuccess }: UserSignUpFormProps)
     try {
       const result = await signUp(email, password);
       if (isMfaChallenge(result)) {
-        // 부모에게 MFA가 필요하다고 알림
+        // Notify parent to start MFA flow.
+        // 상위 컴포넌트에 MFA 진행 필요 알림
         onMfaRequired(result.mfaId, email);
       } else {
-        // 부모에게 성공했다고 알림
+        // On success, let parent navigate.
+        // 성공 시 상위 컴포넌트에 알림(네비게이션)
         onSignUpSuccess();
       }
     } catch (error) {
@@ -207,6 +224,8 @@ function ForgotPasswordForm() {
 
   const { resetPassword } = useAuth();
 
+  // Send reset link to email.
+  // 비밀번호 재설정 링크 이메일 발송
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -282,17 +301,21 @@ function OtpInputForm({
   const [timeLeft, setTimeLeft] = useState(otpDurationInSeconds);
 
   useEffect(() => {
-    // 시간이 0이 되면 타이머를 더 이상 실행하지 않음
+    // Stop when timer hits 0.
+    // 남은 시간이 0이면 타이머 중지
     if (timeLeft === 0) return;
 
-    // 1초마다 timeLeft를 1씩 감소
+    // Decrease every second.
+    // 1초마다 1씩 감소
     const timerId = setInterval(() => {
       setTimeLeft((prevTime) => prevTime - 1);
     }, 1000);
 
-    // 컴포넌트가 언마운트될 때 인터벌 정리
+    // Cleanup interval on unmount.
+    // 언마운트 시 인터벌 정리
     return () => clearInterval(timerId);
-  }, [timeLeft]); // timeLeft가 변경될 때마다 이펙트 재실행
+    // Re-run when timeLeft changes. timeLeft 변경 시 재실행
+  }, [timeLeft]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -312,7 +335,8 @@ function OtpInputForm({
       <div>
         <div className="flex justify-between items-center mb-2">
           <Label htmlFor="otp">One-Time Password</Label>
-          {/* 남은 시간 표시 */}
+          {/* Remaining time badge */}
+          {/* 남은 시간 배지 */}
           {!isTimerExpired && <TimeBadge seconds={timeLeft} />}
         </div>
         <InputField
@@ -324,10 +348,13 @@ function OtpInputForm({
           required
           value={otp}
           onChange={(e) => setOtp(e.target.value)}
-          disabled={isTimerExpired || isLoading} // 시간 만료 시 비활성화
+          disabled={isTimerExpired || isLoading}
+          // Disable if expired or loading.
+          // 만료 또는 로딩 시 비활성화
         />
       </div>
-      {/* 에러 메시지 또는 시간 만료 메시지 표시 */}
+      {/* Show error or expiry message. */}
+      {/* 에러 또는 만료 메시지 표시 */}
       {isTimerExpired ? (
         <AlertText variant="error">Input time has expired. Please try again.</AlertText>
       ) : (
@@ -356,6 +383,8 @@ interface OtpRequestFormProps {
 function OtpRequestForm({ onSubmit, isLoading, error }: OtpRequestFormProps) {
   const [email, setEmail] = useState('');
 
+  // Request an OTP for the given email.
+  // 입력한 이메일로 OTP 요청
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSubmit(email);
@@ -402,18 +431,21 @@ function NoAuthWithError({ title, description }: NoAuthWithErrorProps) {
   );
 }
 
+// All possible UI states in the auth flow.
+// 인증 UI 흐름의 모든 상태
 type FormState =
   | 'signIn'
   | 'signUp'
   | 'forgotPassword'
-  | 'otpRequest' // OTP 요청 단계
-  | 'otpInput' // OTP 입력 단계
-  | 'mfaSignIn' // MFA 활성화시 OTP 입력 단계
-  | 'mfaSignUp' // MFA 활성화시 OTP 입력 단계
+  | 'otpRequest' // Requesting OTP. (OTP 요청 단계)
+  | 'otpInput' // Entering OTP. (OTP 입력 단계)
+  | 'mfaSignIn' // MFA OTP for sign-in. (MFA 활성 시 로그인 OTP)
+  | 'mfaSignUp' // MFA OTP for first login. (MFA 활성 시 최초 로그인 OTP)
   | 'noAuthWithError'
   | 'initial';
 
-// MFA/OTP 전환 시 필요한 데이터를 담을 상태 인터페이스
+// Temp data shared across MFA/OTP steps.
+// MFA/OTP 단계 간 공유되는 임시 데이터
 interface TempAuthData {
   mfaId?: string;
   email?: string;
@@ -436,7 +468,8 @@ function UserAuthForm({ className, ...props }: React.ComponentPropsWithoutRef<'d
   const hasSocialAuth = !!authProviders?.oauth2.providers.length;
   const hasMfaAuth = !!authProviders?.mfa.enabled;
 
-  // auth providers 받아와서 어떤 것을 지원할 지 결정
+  // Fetch auth methods and decide initial UI flow.
+  // 지원 인증 방법 조회 후 초기 UI 흐름 결정
   useEffect(() => {
     const fetchAuthMethods = async () => {
       try {
@@ -445,15 +478,20 @@ function UserAuthForm({ className, ...props }: React.ComponentPropsWithoutRef<'d
           result.mfa.enabled && (!result.password.enabled || !result.otp.enabled);
         customLog('auth-methods-list:', result);
         setAuthProviders(result);
+        // Initial form selection.
         // 초기 폼 상태 결정
         if (isMfaError) {
+          // MFA requires both password and OTP to be enabled.
+          // MFA는 비밀번호와 OTP 둘 다 필요
           setFormState('noAuthWithError');
         } else if (result.password.enabled) {
           setFormState('signIn');
         } else if (result.otp.enabled && !result.mfa.enabled) {
           setFormState('otpRequest');
         } else {
-          setFormState('initial'); // 폼 없이 OAuth 버튼만 표시
+          // OAuth-only UI (no form).
+          // 폼 없이 OAuth만 표시
+          setFormState('initial');
         }
       } catch (error) {
         console.error('Error fetchAuthMethods:', error);
@@ -466,6 +504,8 @@ function UserAuthForm({ className, ...props }: React.ComponentPropsWithoutRef<'d
     navigate({ to: getRedirectAfterSignIn(), replace: true });
   };
 
+  // Start MFA for sign-in.
+  // 로그인 중 MFA 시작
   const handleMfaRequiredForSignIn = async (mfaId: string, email: string) => {
     setError('MFA required. An OTP has been sent to your email.');
     const otpRequest = await requestOtp(email);
@@ -473,6 +513,8 @@ function UserAuthForm({ className, ...props }: React.ComponentPropsWithoutRef<'d
     setFormState('mfaSignIn');
   };
 
+  // Start MFA for first login after sign-up.
+  // 회원가입 후 최초 로그인에서 MFA 시작
   const handleMfaRequiredForSignUp = async (mfaId: string, email: string) => {
     setError(
       'Account created. MFA is required for the first login. An OTP has been sent to your email.',
@@ -482,10 +524,14 @@ function UserAuthForm({ className, ...props }: React.ComponentPropsWithoutRef<'d
     setFormState('mfaSignUp');
   };
 
+  // Complete MFA with OTP.
+  // OTP로 MFA 완료
   const handleMfaSubmit = async (otp: string) => {
     if (!tempAuthData?.mfaId || !tempAuthData?.otpRequest) {
       setError('MFA session expired. Please try again.');
-      setFormState('signIn'); // 오류 발생 시 로그인 폼으로
+      setFormState('signIn');
+      // Fallback to sign-in.
+      // 오류 시 로그인으로 복귀
       return;
     }
     setIsLoading(true);
@@ -500,13 +546,17 @@ function UserAuthForm({ className, ...props }: React.ComponentPropsWithoutRef<'d
     }
   };
 
+  // Request OTP for email-only auth.
+  // 이메일 기반 OTP 인증 요청
   const handleRequestOtp = async (email: string) => {
     setIsLoading(true);
     setError(null);
     try {
       const otpRequest = await requestOtp(email);
       setTempAuthData({ email, otpRequest });
-      setFormState('otpInput'); // 상태를 OTP 입력 단계로 전환
+      // Move to OTP entry.
+      // OTP 입력 단계로 전환
+      setFormState('otpInput');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
@@ -514,6 +564,8 @@ function UserAuthForm({ className, ...props }: React.ComponentPropsWithoutRef<'d
     }
   };
 
+  // Complete email OTP auth.
+  // 이메일 OTP 인증 완료
   const handleAuthWithOtp = async (otp: string) => {
     if (!tempAuthData?.otpRequest) {
       setError('OTP session expired. Please request a new one.');
@@ -532,6 +584,8 @@ function UserAuthForm({ className, ...props }: React.ComponentPropsWithoutRef<'d
     }
   };
 
+  // Start OAuth flow with selected provider.
+  // 선택한 공급자로 OAuth 흐름 시작
   const handleAuthWithOAuth = async (providerName: string) => {
     try {
       await authWithOAuth(providerName);
@@ -543,6 +597,8 @@ function UserAuthForm({ className, ...props }: React.ComponentPropsWithoutRef<'d
     }
   };
 
+  // Render proper form by state machine.
+  // 상태 머신에 따라 적절한 폼 렌더링
   const renderForm = () => {
     switch (formState) {
       case 'signIn':
@@ -593,18 +649,15 @@ function UserAuthForm({ className, ...props }: React.ComponentPropsWithoutRef<'d
             onCancel={() => {
               setError(null);
               setTempAuthData(null);
-              setFormState('otpRequest'); // 이전 단계(OTP 요청)로 돌아가기
+              // Back to request.
+              // 요청 단계로 돌아가기
+              setFormState('otpRequest');
             }}
             cancelButtonText="Resend OTP"
           />
         );
       case 'forgotPassword':
-        // 기존 ForgotPasswordForm 컴포넌트 사용
         return <ForgotPasswordForm />;
-
-      // otpLogin 등 다른 케이스 추가 가능
-      // case 'otpLogin':
-      //   return <UserOtpForm ... />;
       case 'noAuthWithError':
         return (
           <NoAuthWithError
@@ -614,10 +667,14 @@ function UserAuthForm({ className, ...props }: React.ComponentPropsWithoutRef<'d
         );
       case 'initial':
       default:
-        return null; // 로딩 중이거나 폼이 없는 경우
+        // Loading or OAuth-only.
+        // 로딩 중이거나 OAuth-only
+        return null;
     }
   };
 
+  // UI feature flags computed from providers/state.
+  // 제공자/상태에 따라 UI 표시 여부 결정
   const showDivider =
     !hasMfaAuth &&
     ((['signIn', 'signUp'].includes(formState) && (hasOtpAuth || hasSocialAuth)) ||
@@ -641,7 +698,8 @@ function UserAuthForm({ className, ...props }: React.ComponentPropsWithoutRef<'d
           </div>
         )}
 
-        {/* 비밀번호 찾기 - sign in 페이지에서만 렌더링 */}
+        {/* Forgot-password link (sign-in only). */}
+        {/* 비밀번호 찾기 링크(로그인 화면에서만) */}
         {formState === 'signIn' && (
           <div className="mt-4 text-center text-sm">
             <TextButton onClick={() => setFormState('forgotPassword')}>
@@ -649,7 +707,9 @@ function UserAuthForm({ className, ...props }: React.ComponentPropsWithoutRef<'d
             </TextButton>
           </div>
         )}
-        {/* 비밀번호 찾기 또는 비밀번호 가입을 지원하는 otp에서 뒤로 가기 버튼 지원 */}
+
+        {/* Back button for forgot-password or OTP (when password auth exists). */}
+        {/* 비밀번호 찾기/OTP에서 뒤로가기(비번 인증 지원 시) */}
         {(formState === 'forgotPassword' || (hasPasswordAuth && formState === 'otpRequest')) && (
           <div className="mt-4 text-center text-sm">
             <TextButton
@@ -663,7 +723,9 @@ function UserAuthForm({ className, ...props }: React.ComponentPropsWithoutRef<'d
             </TextButton>
           </div>
         )}
-        {/* sign in, sign up 스위치 */}
+
+        {/* Toggle between sign-in and sign-up. */}
+        {/* 로그인/회원가입 전환 */}
         {(formState === 'signIn' || formState === 'signUp') && (
           <div
             className={
@@ -675,15 +737,21 @@ function UserAuthForm({ className, ...props }: React.ComponentPropsWithoutRef<'d
             </TextButton>
           </div>
         )}
-        {/* 구분선 */}
+
+        {/* Divider between primary and alternative methods. */}
+        {/* 기본/대체 인증 방법 구분선 */}
         {showDivider && <Divider />}
-        {/* AuthWithOtp button 렌더링 */}
+
+        {/* Entry point for email OTP login. */}
+        {/* 이메일 OTP 로그인 진입 버튼 */}
         {showOtpButton && (
           <PrimaryActionButton className="mt-4" onClick={() => setFormState('otpRequest')}>
             Sign in with Email OTP
           </PrimaryActionButton>
         )}
-        {/* OAuth2 렌더링 */}
+
+        {/* OAuth2 providers. */}
+        {/* OAuth2 공급자 버튼 */}
         {showOAuthButtons && (
           <OAuthButtons providers={authProviders?.oauth2.providers} onClick={handleAuthWithOAuth} />
         )}

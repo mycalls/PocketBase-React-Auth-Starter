@@ -1,54 +1,29 @@
-# React + TypeScript + Vite
+# PocketBase React Auth Starter
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Authentication starter built with **PocketBase**, **React**, **Vite**, **TanStack Router**, and **Tailwind CSS**.
+It demonstrates:
 
-Currently, two official plugins are available:
+- **Identity/Password**: Standard email/password sign-in and sign-up.
+- **Email OTP (One-Time Password)**: Passwordless sign-in using a temporary code sent to the user's email.
+- **OAuth2**: Seamless sign-in with various social identity providers (e.g., Google, GitHub, etc.).
+- **MFA (Multi-factor Authentication)**: Enhanced security requiring a second authentication step after a successful password-based login.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+> [!IMPORTANT]
+>
+> - **Bundled PocketBase binary:** The binary included in this repo is **macOS ARM64 (Apple Silicon)**.
+> - If you’re on **Windows** or **another OS/architecture**, download the appropriate [PocketBase release](https://pocketbase.io/docs/) for your platform and place the executable inside the project’s `./pocketbase/` folder (replacing the existing one).
+> - **MFA** in this project is fixed to **Identity/Password (factor 1) + Email OTP (factor 2)**.
+>   MFA will only work when **both Password and Email OTP are enabled** in PocketBase.
+> - **Email OTP** requires a working **SMTP** configuration in PocketBase.
+> - **OAuth2** requires provider configuration in PocketBase (client ID/secret + allowed redirect URLs).
 
-## Expanding the ESLint configuration
+## Tech stack
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- **Frontend:** React 18, Vite, TanStack Router, Tailwind CSS
+- **Auth & backend:** PocketBase JavaScript SDK (talking to a PocketBase server)
 
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
-```
+## Getting started
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## 🤝 Contributing
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
-```
+Feel free to open issues or submit pull requests. Any feedback and contributions are welcome\!

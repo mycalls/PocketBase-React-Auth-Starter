@@ -1,4 +1,6 @@
 // src/lib/pocketbase-types.ts
+// PocketBase response type definitions used across the app.
+// 앱 전반에서 사용하는 PocketBase 응답 타입 정의.
 
 import type { collectionNames, CollectionName } from '../constants';
 
@@ -6,7 +8,8 @@ export type IsoDateString = string;
 export type RecordIdString = string;
 export type HTMLString = string;
 
-// 모든 PocketBase 레코드의 기본 시스템 필드
+// Core system fields present on every PocketBase record.
+// 모든 PocketBase 레코드에 공통으로 존재하는 시스템 필드.
 type BaseSystemFields<T = unknown> = {
   id: RecordIdString;
   collectionId: string;
@@ -16,16 +19,18 @@ type BaseSystemFields<T = unknown> = {
   expand?: T;
 };
 
-// 공통 인증 필드 추출 (DRY)
-// 모든 인증 가능 레코드(users, admins)가 공유하는 필드
+// Auth fields shared by authenticatable records (users/admins). (DRY)
+// 인증 가능한 레코드(users/admins)가 공유하는 공통 필드(DRY).
 type BaseAuthRecord = {
   email: string;
   verified: boolean;
   emailVisibility: boolean;
 };
 
-// 'users' 컬렉션의 레코드 타입
-// @template Texpand 확장될 필드의 타입을 지정합니다.
+// Record type for the 'users' collection.
+// 'users' 컬렉션 레코드 타입.
+// @template Texpand: type of expanded relations.
+// @template Texpand: expand로 가져올 관계 필드의 타입.
 export type UsersResponse<Texpand = unknown> = BaseAuthRecord &
   Omit<BaseSystemFields<Texpand>, 'collectionName'> & {
     collectionName: typeof collectionNames.users;
@@ -33,20 +38,25 @@ export type UsersResponse<Texpand = unknown> = BaseAuthRecord &
     name: string;
   };
 
-// '_superusers' 컬렉션의 레코드 타입 (Admins)
-// @template Texpand 확장될 필드의 타입을 지정합니다.
+// Record type for the '_superusers' collection (Admins).
+// '_superusers' 컬렉션(Admins) 레코드 타입.
+// @template Texpand: type of expanded relations.
+// @template Texpand: expand로 가져올 관계 필드의 타입.
 export type AdminsResponse<Texpand = unknown> = BaseAuthRecord &
   Omit<BaseSystemFields<Texpand>, 'collectionName'> & {
     collectionName: typeof collectionNames.admins;
-    // Admin 레코드에는 avatar, name 필드가 없음
+    // Note: Admin records don't have avatar or name.
+    // 참고: Admin 레코드에는 avatar, name 필드가 없음.
   };
 
-// 식별 가능한 유니온 타입 (Discriminated Union)
-// 비밀번호, OAuth2, 또는 관리자 로그인 후 받을 수 있는 모든 응답 타입을 통합합니다.
-// `collectionName` 필드를 통해 타입이 자동으로 추론됩니다.
+// Discriminated union of all possible auth responses (password/OAuth2/admin).
+// 가능한 모든 인증 응답 타입의 식별 가능한 유니온(비밀번호/OAuth2/관리자).
+// The `collectionName` field discriminates between variants.
+// `collectionName` 필드로 변형을 구분합니다.
 export type AuthResponse = UsersResponse | AdminsResponse;
 
-// OAuth2 공급자로부터 받은 추가 메타 정보
+// Additional metadata returned by an OAuth2 provider.
+// OAuth2 공급자로부터 반환되는 추가 메타데이터.
 export type OAuth2Meta = {
   id: string;
   name: string;
