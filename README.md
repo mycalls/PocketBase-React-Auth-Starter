@@ -10,8 +10,7 @@ It demonstrates:
 
 > [!IMPORTANT]
 >
-> - **Bundled PocketBase binary:** The binary included in this repo is **macOS ARM64 (Apple Silicon)**.
-> - If you’re on **Windows** or **another OS/architecture**, download the appropriate [PocketBase release](https://pocketbase.io/docs/) for your platform and place the executable inside the project’s `./pocketbase/` folder (replacing the existing one).
+> - Download the appropriate [PocketBase release](https://pocketbase.io/docs/) for your platform and place the executable inside the project’s `./pocketbase/` folder.
 > - **MFA** in this project is fixed to **Identity/Password (factor 1) + Email OTP (factor 2)**.
 >   MFA will only work when **both Password and Email OTP are enabled** in PocketBase.
 > - **Email OTP** requires a working **SMTP** configuration in PocketBase.
@@ -24,6 +23,25 @@ It demonstrates:
 
 ## Getting started
 
-## 🤝 Contributing
+- Download the appropriate [PocketBase release](https://pocketbase.io/docs/) for your platform and place the executable inside the project’s `./pocketbase/` folder.
+
+```sh
+cd pocketbase-react-auth
+```
+
+```sh
+./pocketbase/pocketbase serve
+```
+
+- Open the Dashboard address in your browser. (e.g., http://127.0.0.1:8090/_/)
+- Create an Admin account, then add your desired settings ([SMTP](https://pocketbase.io/docs/going-to-production/#use-smtp-mail-server), [OAuth2](https://pocketbase.io/docs/authentication/#authenticate-with-oauth2), [MFA](https://pocketbase.io/docs/going-to-production/#enable-mfa-for-superusers)).
+
+```sh
+npm run dev
+```
+
+- Open the Local address in your browser. (e.g., http://localhost:5173/)
+
+## Contributing
 
 Feel free to open issues or submit pull requests. Any feedback and contributions are welcome\!

@@ -11,13 +11,14 @@ const REDIRECT_PARAM = 'redirect';
 // 인증 가드: 미인증 시 /signin 으로 리디렉션하며 현재 URL을 함께 전달.
 export const protectPage = (location?: ParsedLocation): void => {
   if (!pb.authStore.isValid) {
-    throw redirect({
+    redirect({
       to: '/signin',
       search: {
         // carry current location (optional)
         // 현재 위치 전달(선택적)
         [REDIRECT_PARAM]: location?.href,
       },
+      throw: true,
     });
   }
 };

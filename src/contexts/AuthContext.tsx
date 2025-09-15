@@ -21,7 +21,7 @@ import type {
 import { customLog } from '../utils/logger';
 import { collectionNames } from '../constants';
 
-interface AuthState {
+export interface AuthState {
   isAuthed: boolean;
   isSuperuser: boolean;
   user: AuthRecord | null;
@@ -83,7 +83,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       setAuthState({
         isAuthed: pb.authStore.isValid,
         isSuperuser: pb.authStore.isSuperuser,
-        user: record as AuthRecord | null,
+        user: record,
         token: token,
       });
     });
@@ -115,7 +115,15 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         return response;
       } catch (err) {
         const clientError = err as ClientResponseError;
-        const mfaId = clientError.response?.mfaId;
+        let mfaId: string | undefined;
+        const resp: unknown = clientError?.response;
+
+        if (resp && typeof resp === 'object' && resp !== null && 'mfaId' in resp) {
+          if (typeof resp.mfaId === 'string') {
+            mfaId = resp.mfaId;
+          }
+        }
+        //const mfaId = clientError.response?.mfaId;
 
         if (mfaId) {
           // EN: Auth requires MFA; return mfaId to continue the flow on the client.
@@ -155,7 +163,15 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         const clientError = err as ClientResponseError;
         customLog('Sign In Error:', clientError);
 
-        const mfaId = clientError.response?.mfaId;
+        let mfaId: string | undefined;
+        const resp: unknown = clientError?.response;
+
+        if (resp && typeof resp === 'object' && resp !== null && 'mfaId' in resp) {
+          if (typeof resp.mfaId === 'string') {
+            mfaId = resp.mfaId;
+          }
+        }
+
         if (mfaId) {
           // EN: MFA required; pass mfaId back to caller.
           // KR: MFA 필요 시 mfaId를 호출자에게 전달합니다.

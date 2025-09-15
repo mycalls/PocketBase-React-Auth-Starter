@@ -62,7 +62,13 @@ function Index() {
                   {/* EN: Superusers cannot self-delete their accounts.
                       KO: 슈퍼유저는 자기 계정 삭제가 금지됩니다. */}
                   {!isSuperuser && (
-                    <button type="button" onClick={deleteAccount} className={btnDanger}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        void deleteAccount();
+                      }}
+                      className={btnDanger}
+                    >
                       Close Account
                     </button>
                   )}
@@ -98,11 +104,7 @@ function Index() {
                   .
                 </li>
                 <li>
-                  <b className="text-red-700">Bundled PocketBase binary:</b> The binary included in
-                  this repo is <b>macOS ARM64 (Apple Silicon)</b>.
-                </li>
-                <li>
-                  If you’re on Windows or another OS/architecture, download the appropriate{' '}
+                  <b className="text-red-700">Important:</b> Download the appropriate{' '}
                   <a
                     href="https://pocketbase.io/docs/"
                     target="_blank"
@@ -115,7 +117,7 @@ function Index() {
                   <code className="rounded bg-gray-100 px-1 py-0.5 font-mono text-[0.9em] dark:bg-gray-800">
                     ./pocketbase/
                   </code>{' '}
-                  folder (replacing the existing one).
+                  folder.
                 </li>
                 <li>Enable each authentication method in PocketBase.</li>
                 <li>Email OTP requires SMTP to be configured.</li>
@@ -131,5 +133,3 @@ function Index() {
     </section>
   );
 }
-
-export default Index;
