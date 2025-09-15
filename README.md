@@ -23,6 +23,13 @@ It demonstrates:
 
 ## Getting started
 
+- Clone the PocketBase-React-Auth-Starter
+  repository and initialize it.
+
+```sh
+git clone https://github.com/mycalls/PocketBase-React-Auth-Starter.git
+```
+
 - Download the appropriate [PocketBase release](https://pocketbase.io/docs/) for your platform and place the executable inside the project’s `./pocketbase/` folder.
 
 ```sh
